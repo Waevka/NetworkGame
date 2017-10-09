@@ -31,10 +31,10 @@ public class TestNetworkScript : MonoBehaviour {
     public void ButtonConnect()
     {
         byte error;
-        connectionId = NetworkTransport.Connect(socketId, "localhost", socketPort, 0, out error);
+        connectionId = NetworkTransport.Connect(socketId, "127.0.0.1", socketPort, 0, out error);
         if((NetworkError)error != NetworkError.Ok)
         {
-            Debug.Log("ooops");
+            Debug.Log("ooops - " + (NetworkError)error);
             return;
         } else
         {
