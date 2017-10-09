@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -25,8 +27,37 @@ public class TestNetworkScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        //Check for messages
+        int recHostId;
+        int recConnectionId;
+        int recChannelId;
+        byte[] recBuffer = new byte[1024];
+        int bufferSize = 1024;
+        int dataSize;
+
+        byte error;
+        NetworkEventType recNetworkEvent = NetworkTransport.Receive(
+            out recHostId, out recConnectionId, out recChannelId,
+            recBuffer, bufferSize, out dataSize, out error);
+
+        switch (recNetworkEvent)
+        {
+            case NetworkEventType.Nothing:
+                break;
+            case NetworkEventType.ConnectEvent:
+                Debug.Log("Somebody connected!");
+                break;
+            case NetworkEventType.DataEvent:
+                Stream stream = new MemoryStream(recBuffer);
+                BinaryFormatter formatter = new BinaryFormatter();
+                string message = formatter.Deserialize(stream) as string;
+                Debug.Log("Incoming message: " + message);
+                break;
+            case NetworkEventType.DisconnectEvent:
+                Debug.Log("Somebody disconnected!");
+                break;
+        }
+    }
 
     public void ButtonConnect()
     {
