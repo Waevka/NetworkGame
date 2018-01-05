@@ -6,7 +6,7 @@ public class Player : MonoBehaviour {
     public string playerName;
 	// Use this for initialization
 	void Start () {
-        PlayerManager.Instance.AddNewPlayer(this);
+        //PlayerManager.Instance.AddNewPlayer(this);
 	}
 	
 	// Update is called once per frame
@@ -17,5 +17,10 @@ public class Player : MonoBehaviour {
     public virtual void SetPosition(string x, string y, string z)
     {
         transform.position = new Vector3(float.Parse(x), float.Parse(y), float.Parse(z));
+    }
+
+    public string GetPositionString()
+    {
+        return playerName + " pos " + transform.position.x + " " + transform.position.y + " " + transform.position.z;
     }
 }

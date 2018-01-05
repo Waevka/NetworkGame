@@ -31,13 +31,20 @@ public class TestNetworkScript : MonoBehaviour {
     GameObject serverButton;
     [SerializeField]
     GameObject clientButton;
+    [SerializeField]
+    GameObject playerPrefab;
+    [SerializeField]
+    GameObject playerControlledPrefab;
+    Dictionary<int, GameObject> connectionList;
 
     public bool Initialized = false;
     public bool IsServer = false;
+    public bool bothServerAndClient = false;
 
 	// Use this for initialization
 	void Start () { 
         NetworkTransport.Init();
+        connectionList = new Dictionary<int, GameObject>();
         parser = GetComponent<MessageParser>();
     }
 	
@@ -61,6 +68,10 @@ public class TestNetworkScript : MonoBehaviour {
             case NetworkEventType.Nothing:
                 break;
             case NetworkEventType.ConnectEvent:
+                if (IsServer)
+                {
+                    InitializeNewPlayer(IsServer, recConnectionId);
+                }
                 Debug.Log("Somebody connected!");
                 break;
             case NetworkEventType.DataEvent:
@@ -71,6 +82,10 @@ public class TestNetworkScript : MonoBehaviour {
                 parser.ParseMessage(message);
                 break;
             case NetworkEventType.DisconnectEvent:
+                if(IsServer)
+                {
+                    RemoveClient(recConnectionId);
+                }
                 Debug.Log("Somebody disconnected!");
                 break;
         }
@@ -94,6 +109,10 @@ public class TestNetworkScript : MonoBehaviour {
             return;
         } else
         {
+            if (IsServer)
+            {
+                bothServerAndClient = true;
+            }
             Initialized = true;
 
 #if !UNITY_EDITOR
@@ -103,6 +122,13 @@ public class TestNetworkScript : MonoBehaviour {
             }
 #endif
             Debug.Log("Connected to host");
+        }
+        if (!bothServerAndClient)
+        {
+            InitializeNewPlayer(false, 0);
+        } else
+        {
+            InitializeServerClient();
         }
     }
 
@@ -166,8 +192,75 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
-    public bool SendNetworkMessageToClient(string message)
+    public bool SendNetworkMessageToClient(string servmsg, int connectionId)
     {
-        return true;
+        if (!Initialized) return false;
+
+        string message = "servermsg " + servmsg;
+
+        byte[] bytemessage = new byte[1240];
+        Stream stream = new MemoryStream(bytemessage);
+        BinaryFormatter formatter = new BinaryFormatter();
+        formatter.Serialize(stream, message);
+
+        byte error;
+        NetworkTransport.Send(socketId, connectionId, reliableChannelId, bytemessage, 1024, out error);
+        if ((NetworkError)error != NetworkError.Ok)
+        {
+            Debug.Log("Error sending message: " + message + " " + (NetworkError)error);
+            return false;
+        }
+        else
+        {
+            Debug.Log("Sent message: " + message);
+            return true;
+        }
+    }
+
+    private void InitializeNewPlayer(bool initAsServer, int connectionId)
+    {
+        if (connectionList.ContainsKey(connectionId) || bothServerAndClient) return;
+        if (initAsServer)
+        {
+            string defaultPos;
+            GameObject p = Instantiate(playerPrefab);
+            connectionList.Add(connectionId, p);
+            p.GetComponent<Player>().playerName = "PlayerID" + connectionId;
+            PlayerManager.Instance.AddNewPlayer(p.GetComponent<Player>());
+            defaultPos = p.GetComponent<Player>().GetPositionString();
+            SendNetworkMessageToClient("assignname " + p.name, connectionId);
+            //send this to all
+            //SendNetworkMessageToClient("newplayer " + p.name, connectionId);
+            SendNetworkMessageToClient(defaultPos, connectionId);
+        } else
+        {
+            GameObject p = Instantiate(playerControlledPrefab);
+            //getInitialData();
+        }
+    }
+
+    private void RemoveClient(int clientId)
+    {
+        GameObject quitter;
+        connectionList.TryGetValue(clientId, out quitter);
+        if(quitter != null)
+        {
+            PlayerManager.Instance.RemovePlayer(
+                PlayerManager.Instance.GetPlayer(quitter.GetComponent<Player>().playerName)
+                );
+        }
+        connectionList.Remove(clientId);
+    }
+
+    private void InitializeServerClient()
+    {
+        GameObject p = Instantiate(playerControlledPrefab);
+        p.GetComponent<PlayerControlled>().playerName = "ServerClient";
+        PlayerManager.Instance.AssignMyName("ServerClient");
+    }
+
+    private void GetInitialData()
+    {
+        // request full info from server
     }
 }
