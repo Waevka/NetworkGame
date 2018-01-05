@@ -20,16 +20,36 @@ public class MessageParser : MonoBehaviour {
         string[] splitMessage = m.Split();
         if(splitMessage[0] != null)
         {
-            p = PlayerManager.Instance.GetPlayer(splitMessage[0]);
-            if (p == null) return;
-            switch (splitMessage[1])
+            if(splitMessage[0] == "servermsg")
             {
-                case "pos":
-                    p.SetPosition(splitMessage[2], splitMessage[3], splitMessage[4]);
-                    break;
-                default:
-                    break;
+                ParseServerMsg(splitMessage);
+            } else
+            {
+                p = PlayerManager.Instance.GetPlayer(splitMessage[0]);
+                if (p == null) return;
+                switch (splitMessage[1])
+                {
+                    case "pos":
+                        p.SetPosition(splitMessage[2], splitMessage[3], splitMessage[4]);
+                        break;
+                    default:
+                        break;
+                }
+
             }
+        }
+    }
+
+    public void ParseServerMsg(string[] msg)
+    {
+        switch (msg[1])
+        {
+            case "assignname":
+                PlayerManager.Instance.AssignMyName(msg[2]);
+                break;
+            default:
+                break;
+
         }
     }
 }
