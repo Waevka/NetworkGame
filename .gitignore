@@ -79,3 +79,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+NetworkGame/.vs/NetworkGame/v15/Server/sqlite3/storage.ide-wal
+NetworkGame/.vs/NetworkGame/v15/Server/sqlite3/storage.ide
+*.lock
