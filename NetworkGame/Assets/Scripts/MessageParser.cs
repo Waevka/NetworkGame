@@ -14,7 +14,7 @@ public class MessageParser : MonoBehaviour {
 		
 	}
 
-    public void ParseMessage(string m)
+    public void ParseMessage(string m, int connectionID)
     {
         Player p = null;
         string[] splitMessage = m.Split();
@@ -32,7 +32,11 @@ public class MessageParser : MonoBehaviour {
                 {
                     case "pos":
                         p.SetPosition(splitMessage[2], splitMessage[3], splitMessage[4]);
-                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllClients(p.GetPositionString());
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetPositionString(), connectionID);
+                        break;
+                    case "rot":
+                        p.SetRotation(splitMessage[2], splitMessage[3], splitMessage[4]);
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetRotationString(), connectionID);
                         break;
                     default:
                         break;

@@ -36,6 +36,8 @@ public class TestNetworkScript : MonoBehaviour {
     [SerializeField]
     GameObject playerControlledPrefab;
     Dictionary<int, GameObject> connectionList;
+    [SerializeField]
+    GameStateUpdater gameStateUpdater = null;
 
     public bool Initialized = false;
     public bool IsServer = false;
@@ -89,7 +91,7 @@ public class TestNetworkScript : MonoBehaviour {
                     BinaryFormatter formatter = new BinaryFormatter();
                     string message = formatter.Deserialize(stream) as string;
                     //Debug.Log("Incoming message: " + message);
-                    parser.ParseMessage(message);
+                    parser.ParseMessage(message, recConnectionId);
                     break;
                 case NetworkEventType.DisconnectEvent:
                     if (IsServer)
@@ -156,6 +158,12 @@ public class TestNetworkScript : MonoBehaviour {
 
     public void ButtonCreateServer()
     {
+        gameStateUpdater = gameObject.GetComponent<GameStateUpdater>();
+        if(gameStateUpdater == null)
+        {
+            gameStateUpdater = gameObject.AddComponent<GameStateUpdater>();
+        }
+        gameStateUpdater.enabled = true;
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
         maxConnections = 3;
@@ -325,5 +333,10 @@ public class TestNetworkScript : MonoBehaviour {
     private void OnApplicationQuit()
     {
         isListening = false;
+    }
+
+    public Dictionary<int, GameObject> GetConnectionList()
+    {
+        return connectionList;
     }
 }

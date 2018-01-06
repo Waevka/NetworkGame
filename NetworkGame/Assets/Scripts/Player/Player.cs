@@ -24,4 +24,15 @@ public class Player : MonoBehaviour {
     {
         return playerName + " pos " + transform.position.x + " " + transform.position.y + " " + transform.position.z;
     }
+
+    public string GetRotationString()
+    {
+        Vector3 rotvec = transform.rotation.eulerAngles;
+        return playerName + " rot " + rotvec.x + " " + rotvec.y + " " + rotvec.z;
+    }
+
+    public void SetRotation(string x, string y, string z)
+    {
+        transform.rotation = Quaternion.Euler(float.Parse(x), float.Parse(y), float.Parse(z));
+    }
 }

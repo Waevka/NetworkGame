@@ -102,4 +102,28 @@ public class PlayerManager : MonoBehaviour {
             p.health = 100;
         }
     }
+
+    public string[] GetAllPlayerPositions()
+    {
+        string[] allpos = new string[playerList.Count];
+        int idx = 0;
+        foreach(Player p in playerList.Values)
+        {
+            allpos[idx] = p.GetPositionString();
+            idx++;
+        }
+        return allpos;
+    }
+
+    public string[] GetAllPlayerRotations()
+    {
+        string[] allrot = new string[playerList.Count];
+        int idx = 0;
+        foreach (Player p in playerList.Values)
+        {
+            allrot[idx] = p.GetRotationString();
+            idx++;
+        }
+        return allrot;
+    }
 }
