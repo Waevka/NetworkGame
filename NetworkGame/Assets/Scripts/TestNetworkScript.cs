@@ -115,7 +115,6 @@ public class TestNetworkScript : MonoBehaviour {
         int retryCount = 0;
         while(retryCount < 3)
         {
-
             //Up to 3 retries/3 connections
             socketId = NetworkTransport.AddHost(hostTopology, socketPort);
             Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
@@ -134,7 +133,6 @@ public class TestNetworkScript : MonoBehaviour {
                     bothServerAndClient = true;
                 }
                 Initialized = true;
-
 #if !UNITY_EDITOR
             if(serverButton != null)
             {
@@ -153,7 +151,6 @@ public class TestNetworkScript : MonoBehaviour {
                 break;
             }
         }
-
     }
 
     public void ButtonCreateServer()
@@ -216,10 +213,11 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+
     public bool SendNetworkMessageToClient(string message, int connectionId)
     {
         if (!Initialized) return false;
-        
+
         byte[] bytemessage = new byte[1240];
         Stream stream = new MemoryStream(bytemessage);
         BinaryFormatter formatter = new BinaryFormatter();
@@ -254,6 +252,7 @@ public class TestNetworkScript : MonoBehaviour {
             //send this to all
             //SendNetworkMessageToClient("newplayer " + p.name, connectionId);
             SendNetworkMessageToClient("servermsg " + defaultPos, connectionId);
+
         } else
         {
             GameObject p = Instantiate(playerControlledPrefab);
