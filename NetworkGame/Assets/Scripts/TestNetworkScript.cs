@@ -123,6 +123,7 @@ public class TestNetworkScript : MonoBehaviour {
             if ((NetworkError)error != NetworkError.Ok) //If connection failed
             {
                 Debug.Log("ooops - " + (NetworkError)error + ", try no. " + retryCount);
+                Debug.Log("Odpauzuj jesli wyskoczy blad :P Albo odznacz pause on error");
                 retryCount++;
                 socketPort--;
             }
@@ -183,6 +184,7 @@ public class TestNetworkScript : MonoBehaviour {
 #endif
         Initialized = true;
         IsServer = true;
+        parser.IsServer = true;
     }
 
     private void OnDestroy()
@@ -237,6 +239,16 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+    public void SendNetworkMessageToAllClients(string message)
+    {
+        StartCoroutine(ClientBroadcaster(message));
+    }
+
+    public void SendNetworkMessageToAllOtherClients(string message, int connectionId)
+    {
+        StartCoroutine(ClientBroadcaster(message, connectionId));
+    }
+
     private void InitializeNewPlayer(bool initAsServer, int connectionId)
     {
         if (connectionList.ContainsKey(connectionId) || bothServerAndClient) return;
@@ -245,14 +257,17 @@ public class TestNetworkScript : MonoBehaviour {
             string defaultPos;
             GameObject p = Instantiate(playerPrefab);
             connectionList.Add(connectionId, p);
-            p.GetComponent<Player>().playerName = "PlayerID" + connectionId;
-            PlayerManager.Instance.AddNewPlayer(p.GetComponent<Player>());
-            defaultPos = p.GetComponent<Player>().GetPositionString();
-            SendNetworkMessageToClient("servermsg assignname " + p.name, connectionId);
-            //send this to all
-            //SendNetworkMessageToClient("newplayer " + p.name, connectionId);
+            Player player = p.GetComponent<Player>();
+            player.playerName = "PlayerID" + connectionId;
+            PlayerManager.Instance.AddNewPlayer(player);
+            defaultPos = player.GetPositionString();
+            SendNetworkMessageToClient("servermsg setname " + p.name, connectionId);
             SendNetworkMessageToClient("servermsg " + defaultPos, connectionId);
-
+            SendNetworkMessageToAllOtherClients(
+                "servermsg crpl " + defaultPos,
+                connectionId);
+            SendNetworkMessageToAllOtherClients("servermsg hl " + player.health, connectionId);
+            StartCoroutine(SendInitialData(connectionId));
         } else
         {
             GameObject p = Instantiate(playerControlledPrefab);
@@ -270,6 +285,7 @@ public class TestNetworkScript : MonoBehaviour {
                 PlayerManager.Instance.GetPlayer(quitter.GetComponent<Player>().playerName)
                 );
         }
+        SendNetworkMessageToAllOtherClients("servermsg dlpl " + quitter.GetComponent<Player>().playerName, connectionId);
         connectionList.Remove(clientId);
     }
 
@@ -280,15 +296,27 @@ public class TestNetworkScript : MonoBehaviour {
         PlayerManager.Instance.AssignMyName("ServerClient");
     }
 
-    private void GetInitialData()
+    private IEnumerator SendInitialData(int connectionId)
     {
-        // request full info from server
+       foreach(int connection in connectionList.Keys)
+        {
+            if(connection != connectionId)
+            {
+                GameObject gp;
+                connectionList.TryGetValue(connection, out gp);
+                Player p = gp.GetComponent<Player>();
+                string playerdata = "servermsg crpl " + p.GetPositionString();
+                SendNetworkMessageToClient(playerdata, connectionId);
+            }
+            yield return null;
+        }
     }
 
-    private IEnumerator ClientBroadcaster(string message)
+    private IEnumerator ClientBroadcaster(string message, int connectionId = -1)
     {
         foreach(int connection in connectionList.Keys)
         {
+            if(connection != connectionId)
             SendNetworkMessageToClient(message, connection);
             yield return null;
         }
