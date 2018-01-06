@@ -16,11 +16,14 @@ public class PlayerControlled : Player {
         if (!isInitialized) return;
         float xPos = Input.GetAxis("Horizontal") * 0.2f;
         float yPos = Input.GetAxis("Vertical") * 0.2f;
-        transform.Translate(xPos, 0.0f, yPos);
-        message = GetPositionString();
-        if (!TestNetworkScript.Instance.IsServer)
+        if(yPos != 0 || xPos != 0)
         {
-            TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+            transform.Translate(xPos, 0.0f, yPos);
+            message = GetPositionString();
+            if (!TestNetworkScript.Instance.IsServer)
+            {
+                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+            }
         }
     }
 

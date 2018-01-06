@@ -40,55 +40,68 @@ public class TestNetworkScript : MonoBehaviour {
     public bool Initialized = false;
     public bool IsServer = false;
     public bool bothServerAndClient = false;
+    public bool isListening = false;
 
 	// Use this for initialization
 	void Start () { 
         NetworkTransport.Init();
         connectionList = new Dictionary<int, GameObject>();
         parser = GetComponent<MessageParser>();
+        isListening = true;
+        StartCoroutine(MessageReceiver());
     }
 	
 	// Update is called once per frame
 	void Update () {
-        //Check for messages
-        int recHostId;
-        int recConnectionId;
-        int recChannelId;
-        byte[] recBuffer = new byte[1024];
-        int bufferSize = 1024;
-        int dataSize;
+        
+    }
 
-        byte error;
-        NetworkEventType recNetworkEvent = NetworkTransport.Receive(
-            out recHostId, out recConnectionId, out recChannelId,
-            recBuffer, bufferSize, out dataSize, out error);
-
-        switch (recNetworkEvent)
+    private IEnumerator MessageReceiver()
+    {
+        while (isListening)
         {
-            case NetworkEventType.Nothing:
-                break;
-            case NetworkEventType.ConnectEvent:
-                if (IsServer)
-                {
-                    InitializeNewPlayer(IsServer, recConnectionId);
-                }
-                Debug.Log("Somebody connected!");
-                break;
-            case NetworkEventType.DataEvent:
-                Stream stream = new MemoryStream(recBuffer);
-                BinaryFormatter formatter = new BinaryFormatter();
-                string message = formatter.Deserialize(stream) as string;
-                Debug.Log("Incoming message: " + message);
-                parser.ParseMessage(message);
-                break;
-            case NetworkEventType.DisconnectEvent:
-                if(IsServer)
-                {
-                    RemoveClient(recConnectionId);
-                }
-                Debug.Log("Somebody disconnected!");
-                break;
+            //Check for messages
+            int recHostId;
+            int recConnectionId;
+            int recChannelId;
+            byte[] recBuffer = new byte[1024];
+            int bufferSize = 1024;
+            int dataSize;
+
+            byte error;
+            NetworkEventType recNetworkEvent = NetworkTransport.Receive(
+                out recHostId, out recConnectionId, out recChannelId,
+                recBuffer, bufferSize, out dataSize, out error);
+
+            switch (recNetworkEvent)
+            {
+                case NetworkEventType.Nothing:
+                    break;
+                case NetworkEventType.ConnectEvent:
+                    if (IsServer)
+                    {
+                        InitializeNewPlayer(IsServer, recConnectionId);
+                    }
+                    Debug.Log("Somebody connected!");
+                    break;
+                case NetworkEventType.DataEvent:
+                    Stream stream = new MemoryStream(recBuffer);
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    string message = formatter.Deserialize(stream) as string;
+                    //Debug.Log("Incoming message: " + message);
+                    parser.ParseMessage(message);
+                    break;
+                case NetworkEventType.DisconnectEvent:
+                    if (IsServer)
+                    {
+                        RemoveClient(recConnectionId);
+                    }
+                    Debug.Log("Somebody disconnected!");
+                    break;
+            }
+            yield return null;
         }
+
     }
 
     public void ButtonConnectToServer()
@@ -97,38 +110,46 @@ public class TestNetworkScript : MonoBehaviour {
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
         maxConnections = 3;
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
+
         socketPort = 8888;
-        socketId = NetworkTransport.AddHost(hostTopology, socketPort);
-        Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
-
-        byte error;
-        connectionId = NetworkTransport.Connect(socketId, "127.0.0.1", 8889, 0, out error);
-        if((NetworkError)error != NetworkError.Ok)
+        int retryCount = 0;
+        while(retryCount < 3)
         {
-            Debug.Log("ooops - " + (NetworkError)error);
-            return;
-        } else
-        {
-            if (IsServer)
+            //Up to 3 retries/3 connections
+            socketId = NetworkTransport.AddHost(hostTopology, socketPort);
+            Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
+            byte error;
+            connectionId = NetworkTransport.Connect(socketId, "127.0.0.1", 8889, 0, out error);
+            if ((NetworkError)error != NetworkError.Ok) //If connection failed
             {
-                bothServerAndClient = true;
+                Debug.Log("ooops - " + (NetworkError)error + ", try no. " + retryCount);
+                retryCount++;
+                socketPort--;
             }
-            Initialized = true;
-
+            else // If connected successfully
+            {
+                if (IsServer)
+                {
+                    bothServerAndClient = true;
+                }
+                Initialized = true;
 #if !UNITY_EDITOR
             if(serverButton != null)
             {
                 serverButton.SetActive(false);
             }
 #endif
-            Debug.Log("Connected to host");
-        }
-        if (!bothServerAndClient)
-        {
-            InitializeNewPlayer(false, 0);
-        } else
-        {
-            InitializeServerClient();
+                Debug.Log("Connected to host");
+                if (!bothServerAndClient)
+                {
+                    InitializeNewPlayer(false, 0);
+                }
+                else
+                {
+                    InitializeServerClient();
+                }
+                break;
+            }
         }
     }
 
@@ -192,11 +213,10 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
-    public bool SendNetworkMessageToClient(string servmsg, int connectionId)
+
+    public bool SendNetworkMessageToClient(string message, int connectionId)
     {
         if (!Initialized) return false;
-
-        string message = "servermsg " + servmsg;
 
         byte[] bytemessage = new byte[1240];
         Stream stream = new MemoryStream(bytemessage);
@@ -228,10 +248,11 @@ public class TestNetworkScript : MonoBehaviour {
             p.GetComponent<Player>().playerName = "PlayerID" + connectionId;
             PlayerManager.Instance.AddNewPlayer(p.GetComponent<Player>());
             defaultPos = p.GetComponent<Player>().GetPositionString();
-            SendNetworkMessageToClient("assignname " + p.name, connectionId);
+            SendNetworkMessageToClient("servermsg assignname " + p.name, connectionId);
             //send this to all
             //SendNetworkMessageToClient("newplayer " + p.name, connectionId);
-            SendNetworkMessageToClient(defaultPos, connectionId);
+            SendNetworkMessageToClient("servermsg " + defaultPos, connectionId);
+
         } else
         {
             GameObject p = Instantiate(playerControlledPrefab);
@@ -262,5 +283,19 @@ public class TestNetworkScript : MonoBehaviour {
     private void GetInitialData()
     {
         // request full info from server
+    }
+
+    private IEnumerator ClientBroadcaster(string message)
+    {
+        foreach(int connection in connectionList.Keys)
+        {
+            SendNetworkMessageToClient(message, connection);
+            yield return null;
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        isListening = false;
     }
 }

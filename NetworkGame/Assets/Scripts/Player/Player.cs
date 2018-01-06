@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
     public string playerName;
+    public int health = 100;
 	// Use this for initialization
 	void Start () {
         //PlayerManager.Instance.AddNewPlayer(this);
