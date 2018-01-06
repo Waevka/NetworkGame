@@ -76,6 +76,7 @@ public class MainMenu : MonoBehaviour
     {
         network.ButtonCreateServer();
         DisableCurrentMenu(ref m_ServerMenu);
+        InfoMenu.Instance.WriteLine("Server created.");
     }
 
     public void ConnectButtonAction()
@@ -106,6 +107,7 @@ public class MainMenu : MonoBehaviour
 
         network.ButtonConnectToServer();
         DisableCurrentMenu(ref m_ClientMenu);
+        InfoMenu.Instance.WriteLine("Connected to server.");
 
         //if (m_ServerAddress.text.Length == 0)
         //{
@@ -127,5 +129,6 @@ public class MainMenu : MonoBehaviour
             m_SPassword.text = "";
         }
         sw.Close();
+        InfoMenu.Instance.WriteLine("New user added to database.");
     }
 }
