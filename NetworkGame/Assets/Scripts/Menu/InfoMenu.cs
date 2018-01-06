@@ -32,7 +32,7 @@ public class InfoMenu : MonoBehaviour
     {
         DateTime now = DateTime.Now;
 
-        string timeStamp = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + "] ";
+        string timeStamp = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
 
         return timeStamp;
     }

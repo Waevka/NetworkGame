@@ -170,6 +170,27 @@ public class TestNetworkScript : MonoBehaviour {
         return MainMenu.Instance.IsUserInDatabase(login, pass);
     }
 
+    public void CreateServer(int portNumber)
+    {
+        gameStateUpdater = gameObject.GetComponent<GameStateUpdater>();
+        if (gameStateUpdater == null)
+        {
+            gameStateUpdater = gameObject.AddComponent<GameStateUpdater>();
+        }
+        gameStateUpdater.enabled = true;
+        ConnectionConfig connectionConfig = new ConnectionConfig();
+        reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
+        maxConnections = 3;
+        HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
+        socketPort = portNumber;
+        socketId = NetworkTransport.AddHost(hostTopology, socketPort);
+        InfoMenu.Instance.WriteLine("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
+        Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
+
+        Initialized = true;
+        IsServer = true;
+        parser.IsServer = true;
+    }
     public void ButtonCreateServer()
     {
         gameStateUpdater = gameObject.GetComponent<GameStateUpdater>();

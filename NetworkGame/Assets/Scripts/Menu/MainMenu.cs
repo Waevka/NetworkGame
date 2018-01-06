@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
 
 public class UserInfo
 {
@@ -36,10 +38,15 @@ public class MainMenu : MonoBehaviour
     public GameObject m_MainMenu;
     public GameObject m_ClientMenu;
     public GameObject m_ServerMenu;
+    public GameObject m_PlayerIDInfo;
+    public GameObject m_ServerInfo;
+    public Text m_ServerAddressText;
+    public Text m_ServerPortText;
 
     // Client menu
     public InputField m_ServerAddress;
-    public InputField m_Port;
+    public InputField m_CPort;
+    public InputField m_SPort;
     public InputField m_CLogin;
     public InputField m_CPassword;
 
@@ -78,7 +85,6 @@ public class MainMenu : MonoBehaviour
     public void ClientButtonAction()
     {
         string input_addr = m_ServerAddress.text;
-        string input_port = m_Port.text;
 
         // adres IP
         if (input_addr.Length == 0)
@@ -86,18 +92,10 @@ public class MainMenu : MonoBehaviour
             input_addr = m_ServerAddress.placeholder.GetComponent<Text>().text;
         }
 
-        // pobranie portu
-        int port;
-        if (input_port.Length == 0)
-        {
-            input_port = m_Port.placeholder.GetComponent<Text>().text;
-        }
-
-        int.TryParse(input_port, out port);
 
         if (!isConnectedToServer)
         {
-            isConnectedToServer = network.ConnectToServer(input_addr, port);
+            isConnectedToServer = network.ConnectToServer(input_addr, GetPortNumber(ref m_CPort));
         }
 
         if (isConnectedToServer)
@@ -105,6 +103,21 @@ public class MainMenu : MonoBehaviour
             DisableCurrentMenu(ref m_MainMenu);
             SetCurrentMenu(ref m_ClientMenu);
         }
+    }
+
+    private int GetPortNumber(ref InputField inputField)
+    {
+        string input_port = inputField.text;
+        // pobranie portu
+        int port;
+        if (input_port.Length == 0)
+        {
+            input_port = inputField.placeholder.GetComponent<Text>().text;
+        }
+
+        int.TryParse(input_port, out port);
+
+        return port;
     }
 
     public void ServerButtonAction()
@@ -120,9 +133,13 @@ public class MainMenu : MonoBehaviour
         {
             AddUser("admin", "nimda");
         }
-        network.ButtonCreateServer();
+        network.CreateServer(GetPortNumber(ref m_SPort));
         DisableCurrentMenu(ref m_ServerMenu);
         InfoMenu.Instance.WriteLine("Server created.");
+
+        SetCurrentMenu(ref m_ServerInfo);
+        m_ServerAddressText.text = GetExternalIpAddress();
+        m_ServerPortText.text = GetPortNumber(ref m_SPort).ToString();
     }
 
     public void ConnectButtonAction()
@@ -160,6 +177,7 @@ public class MainMenu : MonoBehaviour
             network.InitializePlayer();
 
             DisableCurrentMenu(ref m_ClientMenu);
+            SetCurrentMenu(ref m_PlayerIDInfo);
         }
         else
         {
@@ -206,5 +224,18 @@ public class MainMenu : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private string GetExternalIpAddress()
+    {
+        try
+        {
+            string externalIP;
+            externalIP = (new WebClient()).DownloadString("http://checkip.dyndns.org/");
+            externalIP = (new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"))
+                         .Matches(externalIP)[0].ToString();
+            return externalIP;
+        }
+        catch { return null; }
     }
 }

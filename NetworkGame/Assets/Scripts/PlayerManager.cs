@@ -42,6 +42,7 @@ public class PlayerManager : MonoBehaviour {
         p.gameObject.name = p.playerName;
         playerList.Add(p.playerName, p);
         Debug.Log("Added new player: " + p.playerName);
+        InfoMenu.Instance.WriteLine("Added new player: " + p.playerName);
     }
 
     public void RemovePlayer(Player p)
