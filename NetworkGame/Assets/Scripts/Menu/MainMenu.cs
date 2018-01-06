@@ -18,6 +18,19 @@ public class UserInfo
 
 public class MainMenu : MonoBehaviour
 {
+    private static MainMenu instance;
+    public static MainMenu Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = GameObject.FindObjectOfType<MainMenu>();
+            }
+            return instance;
+        }
+    }
+
     public TestNetworkScript network;
 
     public GameObject m_MainMenu;
@@ -33,6 +46,8 @@ public class MainMenu : MonoBehaviour
     // Server menu
     public InputField m_SLogin;
     public InputField m_SPassword;
+
+    private bool isConnectedToServer = false;
 
 
     void Awake()
@@ -62,8 +77,34 @@ public class MainMenu : MonoBehaviour
 
     public void ClientButtonAction()
     {
-        DisableCurrentMenu(ref m_MainMenu);
-        SetCurrentMenu(ref m_ClientMenu);
+        string input_addr = m_ServerAddress.text;
+        string input_port = m_Port.text;
+
+        // adres IP
+        if (input_addr.Length == 0)
+        {
+            input_addr = m_ServerAddress.placeholder.GetComponent<Text>().text;
+        }
+
+        // pobranie portu
+        int port;
+        if (input_port.Length == 0)
+        {
+            input_port = m_Port.placeholder.GetComponent<Text>().text;
+        }
+
+        int.TryParse(input_port, out port);
+
+        if (!isConnectedToServer)
+        {
+            isConnectedToServer = network.ConnectToServer(input_addr, port);
+        }
+
+        if (isConnectedToServer)
+        {
+            DisableCurrentMenu(ref m_MainMenu);
+            SetCurrentMenu(ref m_ClientMenu);
+        }
     }
 
     public void ServerButtonAction()
@@ -74,6 +115,11 @@ public class MainMenu : MonoBehaviour
 
     public void CreateServerButtonAction()
     {
+        // TODO: Usunac pozniej - zahardkodowane zeby nie wpisywac przy kazdym odpaleniu builda
+        if (!IsUserInDatabase("admin", "nimda"))
+        {
+            AddUser("admin", "nimda");
+        }
         network.ButtonCreateServer();
         DisableCurrentMenu(ref m_ServerMenu);
         InfoMenu.Instance.WriteLine("Server created.");
@@ -83,9 +129,64 @@ public class MainMenu : MonoBehaviour
     {
         string input_login = m_CLogin.text;
         string input_password = m_CPassword.text;
-        string input_addr = m_ServerAddress.text;
-        string input_port = m_Port.text;
 
+        if (input_login.Length == 0)
+        {
+            input_login = "admin";
+        }
+        if (input_password.Length == 0)
+        {
+            input_password = "nimda";
+        }
+
+        if (isConnectedToServer)
+        {
+            string message = "login "+ input_login + " " + input_password;
+            TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+        }
+    }
+
+    public void LogInResponse(string[] msg)
+    {
+        bool loginStatus = false;
+        if (msg[2] == "1")
+        {
+            loginStatus = true;
+        }
+
+        if (loginStatus)
+        {
+            InfoMenu.Instance.WriteLine("User " + msg[3] + " singed in correctly.");
+            network.InitializePlayer();
+
+            DisableCurrentMenu(ref m_ClientMenu);
+        }
+        else
+        {
+            InfoMenu.Instance.WriteLine("Bad login or password of user: " + msg[3]);
+        }
+    }
+
+    public void AddUserButtonAction()
+    {
+        if (m_SLogin.text.Length != 0 && m_SPassword.text.Length != 0)
+        {
+            AddUser(m_SLogin.text, m_SPassword.text);
+            m_SLogin.text = "";
+            m_SPassword.text = "";
+        }
+    }
+
+    private void AddUser(string login, string pass)
+    {
+        StreamWriter sw = new StreamWriter("users.txt", true);
+        sw.WriteLine(login + "," + pass);
+        InfoMenu.Instance.WriteLine("New user added to database.");
+        sw.Close();
+    }
+
+    public bool IsUserInDatabase(string login, string pass)
+    {
         if (File.Exists("users.txt"))
         {
             List<UserInfo> database_login = new List<UserInfo>();
@@ -98,37 +199,12 @@ public class MainMenu : MonoBehaviour
 
             foreach (UserInfo info in database_login)
             {
-                if (input_login == info.m_Login && input_password == info.m_Password)
+                if (login == info.m_Login && pass == info.m_Password)
                 {
-                    Debug.Log("jestem");
+                    return true;
                 }
             }
         }
-
-        network.ButtonConnectToServer();
-        DisableCurrentMenu(ref m_ClientMenu);
-        InfoMenu.Instance.WriteLine("Connected to server.");
-
-        //if (m_ServerAddress.text.Length == 0)
-        //{
-        //    Debug.Log(m_ServerAddress.placeholder.GetComponent<Text>().text);
-        //}
-        //else
-        //{
-        //    Debug.Log(m_ServerAddress.text);
-        //}
-    }
-
-    public void AddUserButtonAction()
-    {
-        StreamWriter sw = new StreamWriter("users.txt", true);
-        if (m_SLogin.text.Length != 0 && m_SPassword.text.Length != 0)
-        {
-            sw.WriteLine(m_SLogin.text + "," + m_SPassword.text);
-            m_SLogin.text = "";
-            m_SPassword.text = "";
-        }
-        sw.Close();
-        InfoMenu.Instance.WriteLine("New user added to database.");
+        return false;
     }
 }

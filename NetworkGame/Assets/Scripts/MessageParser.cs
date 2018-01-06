@@ -26,6 +26,24 @@ public class MessageParser : MonoBehaviour {
                 ParseServerMsg(splitMessage);
             } else
             {
+                if (splitMessage[0] == "login")
+                {
+                    if (IsServer)
+                    {
+                        if (TestNetworkScript.Instance.LogInToServer(splitMessage[1], splitMessage[2]))
+                        {
+                            string message = "servermsg login 1 " + splitMessage[1];
+                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID);
+                        }
+                        else
+                        {
+                            string message = "servermsg login 0 " + splitMessage[1];
+                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID);
+                        }
+                        return;
+                    }
+                }
+
                 p = PlayerManager.Instance.GetPlayer(splitMessage[0]);
                 if (p == null) return;
                 switch (splitMessage[1])
@@ -63,6 +81,9 @@ public class MessageParser : MonoBehaviour {
                 break;
             case "hl":
                 PlayerManager.Instance.SetHealth(msg);
+                break;
+            case "login":
+                MainMenu.Instance.LogInResponse(msg);
                 break;
             default:
                 break;

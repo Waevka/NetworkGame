@@ -84,6 +84,7 @@ public class TestNetworkScript : MonoBehaviour {
                     {
                         InitializeNewPlayer(IsServer, recConnectionId);
                     }
+                    InfoMenu.Instance.WriteLine("Somebody connected");
                     Debug.Log("Somebody connected!");
                     break;
                 case NetworkEventType.DataEvent:
@@ -98,6 +99,7 @@ public class TestNetworkScript : MonoBehaviour {
                     {
                         RemoveClient(recConnectionId);
                     }
+                    InfoMenu.Instance.WriteLine("Somebody disconnected");
                     Debug.Log("Somebody disconnected!");
                     break;
             }
@@ -106,22 +108,23 @@ public class TestNetworkScript : MonoBehaviour {
 
     }
 
-    public void ButtonConnectToServer()
+    public bool ConnectToServer(string ipAddress, int portNumber)
     {
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
         maxConnections = 3;
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
 
-        socketPort = 8888;
+        socketPort = portNumber - 1;
         int retryCount = 0;
-        while(retryCount < 3)
+        while (retryCount < 3)
         {
             //Up to 3 retries/3 connections
             socketId = NetworkTransport.AddHost(hostTopology, socketPort);
+            InfoMenu.Instance.WriteLine("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
             Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
             byte error;
-            connectionId = NetworkTransport.Connect(socketId, "127.0.0.1", 8889, 0, out error);
+            connectionId = NetworkTransport.Connect(socketId, ipAddress, portNumber, 0, out error);
             if ((NetworkError)error != NetworkError.Ok) //If connection failed
             {
                 Debug.Log("ooops - " + (NetworkError)error + ", try no. " + retryCount);
@@ -131,29 +134,40 @@ public class TestNetworkScript : MonoBehaviour {
             }
             else // If connected successfully
             {
-                if (IsServer)
-                {
-                    bothServerAndClient = true;
-                }
                 Initialized = true;
-#if !UNITY_EDITOR
-            if(serverButton != null)
-            {
-                serverButton.SetActive(false);
-            }
-#endif
-                Debug.Log("Connected to host");
-                if (!bothServerAndClient)
-                {
-                    InitializeNewPlayer(false, 0);
-                }
-                else
-                {
-                    InitializeServerClient();
-                }
-                break;
+                return true;
+                //InitializePlayer();
+                //break;
             }
         }
+        return false;
+    }
+
+    public void InitializePlayer()
+    {
+        if (IsServer)
+        {
+            bothServerAndClient = true;
+        }
+        //Initialized = true;
+
+        Debug.Log("Connected to host");
+        InfoMenu.Instance.WriteLine("Connected to host");
+        if (!bothServerAndClient)
+        {
+            InitializeNewPlayer(false, 0);
+        }
+        else
+        {
+            InitializeServerClient();
+        }
+
+    }
+
+    public bool LogInToServer(string login, string pass)
+    {
+        InfoMenu.Instance.WriteLine("Trying to log in user: " + login);
+        return MainMenu.Instance.IsUserInDatabase(login, pass);
     }
 
     public void ButtonCreateServer()
@@ -170,6 +184,7 @@ public class TestNetworkScript : MonoBehaviour {
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
         socketPort = 8889;
         socketId = NetworkTransport.AddHost(hostTopology, socketPort);
+        InfoMenu.Instance.WriteLine("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
         Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
 
         /*byte error;
