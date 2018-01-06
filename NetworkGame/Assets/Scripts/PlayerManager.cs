@@ -19,7 +19,9 @@ public class PlayerManager : MonoBehaviour {
 
     public PlayerControlled MyPlayer;
     [SerializeField]
-    Text MyIdText;
+    private Text MyIdText;
+    [SerializeField]
+    GameObject otherPlayerPrefab;
 
     Dictionary<string, Player> playerList;
     // Use this for initialization
@@ -39,12 +41,13 @@ public class PlayerManager : MonoBehaviour {
     {
         p.gameObject.name = p.playerName;
         playerList.Add(p.playerName, p);
+        Debug.Log("Added new player: " + p.playerName);
     }
 
     public void RemovePlayer(Player p)
     {
         playerList.Remove(p.playerName);
-        Destroy(p.gameObject, 0.5f);
+        Destroy(p.gameObject);
     }
 
     public Player GetPlayer(string name)
@@ -72,5 +75,31 @@ public class PlayerManager : MonoBehaviour {
         me.isInitialized = true;
         MyPlayer = me;
         MyIdText.text = name;
+    }
+
+    public void CreateNewPlayer(string[] msg)
+    {
+        Player p = Instantiate(otherPlayerPrefab).GetComponent<Player>();
+        p.playerName = msg[2];
+        p.SetPosition(msg[4], msg[5], msg[6]);
+        AddNewPlayer(p);
+    }
+
+    public void DeletePlayer(string[] msg)
+    {
+        Player p = GetPlayer(msg[2]);
+        if(p != null)
+        {
+            RemovePlayer(p);
+        }
+    }
+
+    public void SetHealth(string[] msg)
+    {
+        Player p = GetPlayer(msg[1]);
+        if (p != null)
+        {
+            p.health = 100;
+        }
     }
 }

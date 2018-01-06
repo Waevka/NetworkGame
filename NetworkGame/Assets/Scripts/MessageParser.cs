@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class MessageParser : MonoBehaviour {
-
+    public bool IsServer;
 	// Use this for initialization
 	void Start () {
 		
@@ -22,6 +22,7 @@ public class MessageParser : MonoBehaviour {
         {
             if(splitMessage[0] == "servermsg")
             {
+                Debug.Log(m);
                 ParseServerMsg(splitMessage);
             } else
             {
@@ -31,6 +32,7 @@ public class MessageParser : MonoBehaviour {
                 {
                     case "pos":
                         p.SetPosition(splitMessage[2], splitMessage[3], splitMessage[4]);
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllClients(p.GetPositionString());
                         break;
                     default:
                         break;
@@ -44,8 +46,19 @@ public class MessageParser : MonoBehaviour {
     {
         switch (msg[1])
         {
-            case "assignname":
+            case "setname": //asigns a name
                 PlayerManager.Instance.AssignMyName(msg[2]);
+                break;
+            case "pos": //this will override client's position if he's messed up
+                break;
+            case "crpl": //createplayer
+                PlayerManager.Instance.CreateNewPlayer(msg);
+                break;
+            case "dlpl": //deleteplayer
+                PlayerManager.Instance.DeletePlayer(msg);
+                break;
+            case "hl":
+                PlayerManager.Instance.SetHealth(msg);
                 break;
             default:
                 break;
