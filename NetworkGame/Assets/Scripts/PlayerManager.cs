@@ -24,6 +24,8 @@ public class PlayerManager : MonoBehaviour {
     GameObject otherPlayerPrefab;
     [SerializeField]
     GameObject userInfoPanelPrefab;
+    [SerializeField]
+    GameObject swordPrefab;
 
     Dictionary<string, Player> playerList;
     // Use this for initialization
@@ -44,6 +46,7 @@ public class PlayerManager : MonoBehaviour {
         p.gameObject.name = p.playerName;
         playerList.Add(p.playerName, p);
         Instantiate(userInfoPanelPrefab, p.gameObject.transform, false);
+        Instantiate(swordPrefab, p.gameObject.transform, false);
         Debug.Log("Added new player: " + p.playerName);
         InfoMenu.Instance.WriteLine("Added new player: " + p.playerName);
     }
@@ -104,6 +107,22 @@ public class PlayerManager : MonoBehaviour {
         if (p != null)
         {
             p.health = 100;
+        }
+    }
+
+    public void PlayPlayerAnimation(string[] msg)
+    {
+        Player p = GetPlayer(msg[1]);
+        if (p != null)
+        {
+            switch (msg[2])
+            {
+                case "at1":
+                    p.PlayAnimation("SwordSlash");
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

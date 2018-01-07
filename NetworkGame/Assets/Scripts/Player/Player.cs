@@ -5,8 +5,10 @@ using UnityEngine;
 public class Player : MonoBehaviour {
     public string playerName;
     public int health = 100;
-	// Use this for initialization
-	void Start () {
+    private float basicAttackCooldown;
+    private Animator animationPlayer;
+    // Use this for initialization
+    void Start () {
         //PlayerManager.Instance.AddNewPlayer(this);
 	}
 	
@@ -34,5 +36,27 @@ public class Player : MonoBehaviour {
     public void SetRotation(string x, string y, string z)
     {
         transform.rotation = Quaternion.Euler(float.Parse(x), float.Parse(y), float.Parse(z));
+    }
+
+    public void OnTriggerEnter(Collider other)
+    {   
+        if(other.gameObject.tag == "Weapon")
+        {
+            if (other.gameObject.transform.parent == this.gameObject)
+            {
+                Debug.Log("Colliding with own sword");
+            }
+            Debug.Log("Colliding with sword");
+        }
+    }
+
+    public void PlayAnimation(string animName)
+    {
+        if(animationPlayer == null)
+        {
+            animationPlayer = GetComponentInChildren<Animator>();
+        }
+
+        animationPlayer.Play(animName);
     }
 }

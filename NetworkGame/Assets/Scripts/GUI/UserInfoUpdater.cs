@@ -8,9 +8,11 @@ public class UserInfoUpdater : MonoBehaviour {
     Image HpBar;
     [SerializeField]
     Text Name;
+    private bool IsServer;
 	// Use this for initialization
 	void Start () {
         Name.text = transform.parent.gameObject.GetComponent<Player>().playerName;
+        IsServer = TestNetworkScript.Instance.IsServer;
 	}
 	
 	// Update is called once per frame
@@ -19,6 +21,6 @@ public class UserInfoUpdater : MonoBehaviour {
         var currentRot = transform.rotation.eulerAngles;
         currentRot.x = 145.0f;
         transform.rotation = Quaternion.Euler(currentRot);
-        if(HpBar != null) HpBar.fillAmount = (float)PlayerManager.Instance.MyPlayer.health / 100.0f;
+        if(HpBar != null && !IsServer) HpBar.fillAmount = (float)PlayerManager.Instance.MyPlayer.health / 100.0f;
     }
 }

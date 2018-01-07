@@ -16,6 +16,7 @@ public class PlayerControlled : Player {
         if (!isInitialized) return;
         float yRot = Input.GetAxis("Horizontal") * 2.0f;
         float xPos = Input.GetAxis("Vertical") * 0.2f;
+
         if(xPos != 0)
         {
             transform.Translate(Vector3.forward * xPos);
@@ -25,10 +26,21 @@ public class PlayerControlled : Player {
                 TestNetworkScript.Instance.SendNetworkMessageToServer(message);
             }
         }
+
         if(yRot != 0)
         {
             transform.Rotate(Vector3.up, yRot);
             message = GetRotationString();
+            if (!TestNetworkScript.Instance.IsServer)
+            {
+                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+            }
+        }
+
+        if(Input.GetButtonDown("Fire1"))
+        {
+            PlayAnimation("SwordSlash");
+            message = playerName + " at1";
             if (!TestNetworkScript.Instance.IsServer)
             {
                 TestNetworkScript.Instance.SendNetworkMessageToServer(message);

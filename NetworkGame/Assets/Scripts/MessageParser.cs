@@ -57,6 +57,10 @@ public class MessageParser : MonoBehaviour {
                         p.SetRotation(splitMessage[2], splitMessage[3], splitMessage[4]);
                         if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetRotationString(), connectionID);
                         break;
+                    case "at1": //attack1
+                        p.PlayAnimation("SwordSlash");
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients("servermsg at1 " + p.playerName, connectionID);
+                        break;
                     default:
                         break;
                 }
@@ -85,6 +89,9 @@ public class MessageParser : MonoBehaviour {
                 break;
             case "login":
                 MainMenu.Instance.LogInResponse(msg);
+                break;
+            case "at1":
+                PlayerManager.Instance.PlayPlayerAnimation(msg);
                 break;
             default:
                 break;
