@@ -159,7 +159,7 @@ public class MainMenu : MonoBehaviour
         if (isConnectedToServer)
         {
             string message = "login "+ input_login + " " + input_password;
-            TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+            TestNetworkScript.Instance.SendNetworkMessageToServer(message, true);
         }
     }
 

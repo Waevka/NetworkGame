@@ -21,6 +21,7 @@ public class TestNetworkScript : MonoBehaviour {
     }
 
     int reliableChannelId;
+    int unreliableChannelId;
     int maxConnections;
     int socketId;
     int socketPort;
@@ -108,6 +109,7 @@ public class TestNetworkScript : MonoBehaviour {
     {
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
+        unreliableChannelId = connectionConfig.AddChannel(QosType.UnreliableSequenced);
         maxConnections = 3;
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
 
@@ -176,6 +178,7 @@ public class TestNetworkScript : MonoBehaviour {
         gameStateUpdater.enabled = true;
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
+        unreliableChannelId = connectionConfig.AddChannel(QosType.UnreliableSequenced);
         maxConnections = 3;
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
         socketPort = portNumber;
@@ -197,6 +200,7 @@ public class TestNetworkScript : MonoBehaviour {
         gameStateUpdater.enabled = true;
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
+        unreliableChannelId = connectionConfig.AddChannel(QosType.UnreliableSequenced);
         maxConnections = 3;
         HostTopology hostTopology = new HostTopology(connectionConfig, maxConnections);
         socketPort = 8889;
@@ -232,7 +236,7 @@ public class TestNetworkScript : MonoBehaviour {
         NetworkTransport.Shutdown();
     }
 
-    public bool SendNetworkMessageToServer(string message)
+    public bool SendNetworkMessageToServer(string message, bool reliable)
     {
         if (!Initialized) return false; 
 
@@ -242,7 +246,8 @@ public class TestNetworkScript : MonoBehaviour {
         formatter.Serialize(stream, message);
 
         byte error;
-        NetworkTransport.Send(socketId, connectionId, reliableChannelId, bytemessage, 1024, out error);
+        int channelId = (reliable ? reliableChannelId : unreliableChannelId);
+        NetworkTransport.Send(socketId, connectionId, channelId, bytemessage, 1024, out error);
         if ((NetworkError)error != NetworkError.Ok)
         {
             Debug.Log("Error sending message: "+ message + " " + (NetworkError)error);
@@ -256,7 +261,7 @@ public class TestNetworkScript : MonoBehaviour {
     }
 
 
-    public bool SendNetworkMessageToClient(string message, int connectionId)
+    public bool SendNetworkMessageToClient(string message, int connectionId, bool reliable)
     {
         if (!Initialized) return false;
 
@@ -266,7 +271,8 @@ public class TestNetworkScript : MonoBehaviour {
         formatter.Serialize(stream, message);
 
         byte error;
-        NetworkTransport.Send(socketId, connectionId, reliableChannelId, bytemessage, 1024, out error);
+        int channelId = (reliable ? reliableChannelId : unreliableChannelId);
+        NetworkTransport.Send(socketId, connectionId, channelId, bytemessage, 1024, out error);
         if ((NetworkError)error != NetworkError.Ok)
         {
             Debug.Log("Error sending message: " + message + " " + (NetworkError)error);
@@ -279,14 +285,14 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
-    public void SendNetworkMessageToAllClients(string message)
+    public void SendNetworkMessageToAllClients(string message, bool reliable)
     {
-        StartCoroutine(ClientBroadcaster(message));
+        StartCoroutine(ClientBroadcaster(message, reliable));
     }
 
-    public void SendNetworkMessageToAllOtherClients(string message, int connectionId)
+    public void SendNetworkMessageToAllOtherClients(string message, int connectionId, bool reliable)
     {
-        StartCoroutine(ClientBroadcaster(message, connectionId));
+        StartCoroutine(ClientBroadcaster(message, reliable, connectionId));
     }
 
     public void InitializeNewPlayer(bool initAsServer, int connectionId, string clientName)
@@ -301,12 +307,12 @@ public class TestNetworkScript : MonoBehaviour {
             player.playerName = clientName;
             PlayerManager.Instance.AddNewPlayer(player);
             defaultPos = player.GetPositionString();
-            SendNetworkMessageToClient("servermsg setname " + p.name, connectionId);
-            SendNetworkMessageToClient("servermsg " + defaultPos, connectionId);
+            SendNetworkMessageToClient("servermsg setname " + p.name, connectionId, true);
+            SendNetworkMessageToClient("servermsg " + defaultPos, connectionId, true);
             SendNetworkMessageToAllOtherClients(
                 "servermsg crpl " + defaultPos,
-                connectionId);
-            SendNetworkMessageToAllOtherClients("servermsg hl " + player.playerName + " 100", connectionId);
+                connectionId, true);
+            SendNetworkMessageToAllOtherClients("servermsg hl " + player.playerName + " 100", connectionId, true);
             SendInitialData(connectionId);
         } else
         {
@@ -325,7 +331,7 @@ public class TestNetworkScript : MonoBehaviour {
                 PlayerManager.Instance.GetPlayer(quitter.GetComponent<Player>().playerName)
                 );
         }
-        SendNetworkMessageToAllOtherClients("servermsg dlpl " + quitter.GetComponent<Player>().playerName, connectionId);
+        SendNetworkMessageToAllOtherClients("servermsg dlpl " + quitter.GetComponent<Player>().playerName, connectionId, true);
         connectionList.Remove(clientId);
     }
 
@@ -351,18 +357,18 @@ public class TestNetworkScript : MonoBehaviour {
                 connectionList.TryGetValue(connection, out gp);
                 Player p = gp.GetComponent<Player>();
                 string playerdata = "servermsg crpl " + p.GetPositionString();
-                SendNetworkMessageToClient(playerdata, connectionId);
+                SendNetworkMessageToClient(playerdata, connectionId, true);
             }
             yield return null;
         }
     }
 
-    private IEnumerator ClientBroadcaster(string message, int connectionId = -1)
+    private IEnumerator ClientBroadcaster(string message, bool reliable, int connectionId = -1)
     {
         foreach(int connection in connectionList.Keys)
         {
             if(connection != connectionId)
-            SendNetworkMessageToClient(message, connection);
+            SendNetworkMessageToClient(message, connection, reliable);
             yield return null;
         }
     }

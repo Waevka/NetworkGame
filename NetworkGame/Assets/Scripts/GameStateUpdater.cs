@@ -21,7 +21,7 @@ public class GameStateUpdater : MonoBehaviour {
             string[] allpos = PlayerManager.Instance.GetAllPlayerPositions();
             foreach(string pos in allpos)
             {
-                TestNetworkScript.Instance.SendNetworkMessageToAllClients(pos);
+                TestNetworkScript.Instance.SendNetworkMessageToAllClients(pos, false);
                 yield return null;
             }
             totalTimesUpdated++;

@@ -23,7 +23,7 @@ public class PlayerControlled : Player {
             message = GetPositionString();
             if (!TestNetworkScript.Instance.IsServer)
             {
-                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+                TestNetworkScript.Instance.SendNetworkMessageToServer(message, false);
             }
         }
 
@@ -33,7 +33,7 @@ public class PlayerControlled : Player {
             message = GetRotationString();
             if (!TestNetworkScript.Instance.IsServer)
             {
-                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+                TestNetworkScript.Instance.SendNetworkMessageToServer(message, false);
             }
         }
 
@@ -44,7 +44,7 @@ public class PlayerControlled : Player {
                 message = playerName + " at1";
                 if (!TestNetworkScript.Instance.IsServer)
                 {
-                    TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+                    TestNetworkScript.Instance.SendNetworkMessageToServer(message, true);
                 }
             }
         }

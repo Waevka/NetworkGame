@@ -33,13 +33,13 @@ public class MessageParser : MonoBehaviour {
                         if (TestNetworkScript.Instance.LogInToServer(splitMessage[1], splitMessage[2]))
                         {
                             string message = "servermsg login 1 " + splitMessage[1];
-                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID);
+                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID, true);
                             TestNetworkScript.Instance.InitializeNewPlayer(IsServer, connectionID, splitMessage[1]);
                         }
                         else
                         {
                             string message = "servermsg login 0 " + splitMessage[1];
-                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID);
+                            TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID, true);
                         }
                         return;
                     }
@@ -51,16 +51,16 @@ public class MessageParser : MonoBehaviour {
                 {
                     case "pos":
                         p.SetPosition(splitMessage[2], splitMessage[3], splitMessage[4]);
-                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetPositionString(), connectionID);
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetPositionString(), connectionID, false);
                         break;
                     case "rot":
                         p.SetRotation(splitMessage[2], splitMessage[3], splitMessage[4]);
-                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetRotationString(), connectionID);
+                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetRotationString(), connectionID, false);
                         break;
                     case "at1": //attack1
                         if(IsServer && p.TryAttack())
                         {
-                            TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients("servermsg at1 " + p.playerName, connectionID);
+                            TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients("servermsg at1 " + p.playerName, connectionID, true);
                         }
                         break;
                     default:

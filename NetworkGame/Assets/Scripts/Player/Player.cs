@@ -59,7 +59,7 @@ public class Player : MonoBehaviour {
                 Debug.Log("Colliding with other player's sword");
                 if (TestNetworkScript.Instance.IsServer)
                 {
-                    TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetHealthString());
+                    TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetHealthString(), true);
                 }
             }
         }
