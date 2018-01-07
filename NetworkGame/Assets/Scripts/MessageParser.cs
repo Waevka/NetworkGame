@@ -34,6 +34,7 @@ public class MessageParser : MonoBehaviour {
                         {
                             string message = "servermsg login 1 " + splitMessage[1];
                             TestNetworkScript.Instance.SendNetworkMessageToClient(message, connectionID);
+                            TestNetworkScript.Instance.InitializeNewPlayer(IsServer, connectionID, splitMessage[1]);
                         }
                         else
                         {

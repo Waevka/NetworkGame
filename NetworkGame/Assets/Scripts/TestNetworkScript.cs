@@ -80,10 +80,6 @@ public class TestNetworkScript : MonoBehaviour {
                 case NetworkEventType.Nothing:
                     break;
                 case NetworkEventType.ConnectEvent:
-                    if (IsServer)
-                    {
-                        InitializeNewPlayer(IsServer, recConnectionId);
-                    }
                     InfoMenu.Instance.WriteLine("Somebody connected");
                     Debug.Log("Somebody connected!");
                     break;
@@ -143,7 +139,7 @@ public class TestNetworkScript : MonoBehaviour {
         return false;
     }
 
-    public void InitializePlayer()
+    public void InitializePlayer(string username)
     {
         if (IsServer)
         {
@@ -155,7 +151,7 @@ public class TestNetworkScript : MonoBehaviour {
         InfoMenu.Instance.WriteLine("Connected to host");
         if (!bothServerAndClient)
         {
-            InitializeNewPlayer(false, 0);
+            InitializeNewPlayer(false, 0, username);
         }
         else
         {
@@ -293,7 +289,7 @@ public class TestNetworkScript : MonoBehaviour {
         StartCoroutine(ClientBroadcaster(message, connectionId));
     }
 
-    private void InitializeNewPlayer(bool initAsServer, int connectionId)
+    public void InitializeNewPlayer(bool initAsServer, int connectionId, string clientName)
     {
         if (connectionList.ContainsKey(connectionId) || bothServerAndClient) return;
         if (initAsServer)
@@ -302,7 +298,7 @@ public class TestNetworkScript : MonoBehaviour {
             GameObject p = Instantiate(playerPrefab);
             connectionList.Add(connectionId, p);
             Player player = p.GetComponent<Player>();
-            player.playerName = "PlayerID" + connectionId;
+            player.playerName = clientName;
             PlayerManager.Instance.AddNewPlayer(player);
             defaultPos = player.GetPositionString();
             SendNetworkMessageToClient("servermsg setname " + p.name, connectionId);
@@ -311,7 +307,7 @@ public class TestNetworkScript : MonoBehaviour {
                 "servermsg crpl " + defaultPos,
                 connectionId);
             SendNetworkMessageToAllOtherClients("servermsg hl " + player.health, connectionId);
-            StartCoroutine(SendInitialData(connectionId));
+            SendInitialData(connectionId);
         } else
         {
             GameObject p = Instantiate(playerControlledPrefab);
@@ -340,7 +336,12 @@ public class TestNetworkScript : MonoBehaviour {
         PlayerManager.Instance.AssignMyName("ServerClient");
     }
 
-    private IEnumerator SendInitialData(int connectionId)
+    public void SendInitialData(int connectionId)
+    {
+        StartCoroutine(SendInitialDataRoutine(connectionId));
+    }
+
+    private IEnumerator SendInitialDataRoutine(int connectionId)
     {
        foreach(int connection in connectionList.Keys)
         {

@@ -174,7 +174,7 @@ public class MainMenu : MonoBehaviour
         if (loginStatus)
         {
             InfoMenu.Instance.WriteLine("User " + msg[3] + " singed in correctly.");
-            network.InitializePlayer();
+            network.InitializePlayer(msg[3]);
 
             DisableCurrentMenu(ref m_ClientMenu);
             SetCurrentMenu(ref m_PlayerIDInfo);
