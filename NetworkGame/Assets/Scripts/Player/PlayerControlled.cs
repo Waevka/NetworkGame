@@ -14,12 +14,21 @@ public class PlayerControlled : Player {
 	// Update is called once per frame
 	void Update () {
         if (!isInitialized) return;
-        float xPos = Input.GetAxis("Horizontal") * 0.2f;
-        float yPos = Input.GetAxis("Vertical") * 0.2f;
-        if(yPos != 0 || xPos != 0)
+        float yRot = Input.GetAxis("Horizontal") * 2.0f;
+        float xPos = Input.GetAxis("Vertical") * 0.2f;
+        if(xPos != 0)
         {
-            transform.Translate(xPos, 0.0f, yPos);
+            transform.Translate(Vector3.forward * xPos);
             message = GetPositionString();
+            if (!TestNetworkScript.Instance.IsServer)
+            {
+                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+            }
+        }
+        if(yRot != 0)
+        {
+            transform.Rotate(Vector3.up, yRot);
+            message = GetRotationString();
             if (!TestNetworkScript.Instance.IsServer)
             {
                 TestNetworkScript.Instance.SendNetworkMessageToServer(message);

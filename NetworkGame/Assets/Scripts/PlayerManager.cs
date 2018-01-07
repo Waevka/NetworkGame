@@ -22,6 +22,8 @@ public class PlayerManager : MonoBehaviour {
     private Text MyIdText;
     [SerializeField]
     GameObject otherPlayerPrefab;
+    [SerializeField]
+    GameObject userInfoPanelPrefab;
 
     Dictionary<string, Player> playerList;
     // Use this for initialization
@@ -41,6 +43,7 @@ public class PlayerManager : MonoBehaviour {
     {
         p.gameObject.name = p.playerName;
         playerList.Add(p.playerName, p);
+        Instantiate(userInfoPanelPrefab, p.gameObject.transform, false);
         Debug.Log("Added new player: " + p.playerName);
         InfoMenu.Instance.WriteLine("Added new player: " + p.playerName);
     }

@@ -9,7 +9,7 @@ public class GameStateUpdater : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         started = false;
-        updateInterval = 0.5f;
+        updateInterval = 2.0f;
         totalTimesUpdated = 0;
         StartCoroutine(WaitForNetworkInitialized());
 	}
