@@ -103,10 +103,19 @@ public class PlayerManager : MonoBehaviour {
 
     public void SetHealth(string[] msg)
     {
-        Player p = GetPlayer(msg[1]);
+        Player p = GetPlayer(msg[2]);
         if (p != null)
         {
-            p.health = 100;
+            p.health = int.Parse(msg[3]);
+        }
+    }
+
+    public void DamagePlayer(string name, int dmgValue)
+    {
+        Player p = GetPlayer(name);
+        if (p != null)
+        {
+            p.health = Mathf.Clamp(p.health - dmgValue, 0, 100);
         }
     }
 

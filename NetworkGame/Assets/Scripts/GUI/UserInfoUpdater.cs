@@ -9,9 +9,11 @@ public class UserInfoUpdater : MonoBehaviour {
     [SerializeField]
     Text Name;
     private bool IsServer;
+    private Player player;
 	// Use this for initialization
 	void Start () {
-        Name.text = transform.parent.gameObject.GetComponent<Player>().playerName;
+        player = transform.parent.gameObject.GetComponent<Player>();
+        Name.text = player.playerName;
         IsServer = TestNetworkScript.Instance.IsServer;
 	}
 	
@@ -21,6 +23,6 @@ public class UserInfoUpdater : MonoBehaviour {
         var currentRot = transform.rotation.eulerAngles;
         currentRot.x = 145.0f;
         transform.rotation = Quaternion.Euler(currentRot);
-        if(HpBar != null && !IsServer) HpBar.fillAmount = (float)PlayerManager.Instance.MyPlayer.health / 100.0f;
+        if(HpBar != null) HpBar.fillAmount = player.health / 100.0f;
     }
 }

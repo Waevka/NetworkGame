@@ -306,7 +306,7 @@ public class TestNetworkScript : MonoBehaviour {
             SendNetworkMessageToAllOtherClients(
                 "servermsg crpl " + defaultPos,
                 connectionId);
-            SendNetworkMessageToAllOtherClients("servermsg hl " + player.health, connectionId);
+            SendNetworkMessageToAllOtherClients("servermsg hl " + player.playerName + " 100", connectionId);
             SendInitialData(connectionId);
         } else
         {

@@ -58,8 +58,10 @@ public class MessageParser : MonoBehaviour {
                         if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients(p.GetRotationString(), connectionID);
                         break;
                     case "at1": //attack1
-                        p.PlayAnimation("SwordSlash");
-                        if (IsServer) TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients("servermsg at1 " + p.playerName, connectionID);
+                        if(IsServer && p.TryAttack())
+                        {
+                            TestNetworkScript.Instance.SendNetworkMessageToAllOtherClients("servermsg at1 " + p.playerName, connectionID);
+                        }
                         break;
                     default:
                         break;

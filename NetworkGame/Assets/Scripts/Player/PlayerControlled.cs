@@ -39,11 +39,13 @@ public class PlayerControlled : Player {
 
         if(Input.GetButtonDown("Fire1"))
         {
-            PlayAnimation("SwordSlash");
-            message = playerName + " at1";
-            if (!TestNetworkScript.Instance.IsServer)
+            if (TryAttack())
             {
-                TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+                message = playerName + " at1";
+                if (!TestNetworkScript.Instance.IsServer)
+                {
+                    TestNetworkScript.Instance.SendNetworkMessageToServer(message);
+                }
             }
         }
     }

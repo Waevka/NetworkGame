@@ -5,11 +5,14 @@ using UnityEngine;
 public class Player : MonoBehaviour {
     public string playerName;
     public int health = 100;
-    private float basicAttackCooldown;
+    private float lastAttackTime;
+    private float attackCooldown;
     private Animator animationPlayer;
     // Use this for initialization
     void Start () {
         //PlayerManager.Instance.AddNewPlayer(this);
+        attackCooldown = 1.0f;
+        lastAttackTime = Time.time;
 	}
 	
 	// Update is called once per frame
@@ -33,9 +36,14 @@ public class Player : MonoBehaviour {
         return playerName + " rot " + rotvec.x + " " + rotvec.y + " " + rotvec.z;
     }
 
-    public void SetRotation(string x, string y, string z)
+    public virtual void SetRotation(string x, string y, string z)
     {
         transform.rotation = Quaternion.Euler(float.Parse(x), float.Parse(y), float.Parse(z));
+    }
+
+    public string GetHealthString()
+    {
+        return "hl " + playerName + " " + health;
     }
 
     public void OnTriggerEnter(Collider other)
@@ -45,14 +53,38 @@ public class Player : MonoBehaviour {
             if (other.gameObject.transform.parent == this.gameObject)
             {
                 Debug.Log("Colliding with own sword");
+            } else
+            {
+                PlayerManager.Instance.DamagePlayer(playerName, 10);
+                Debug.Log("Colliding with other player's sword");
+                if (TestNetworkScript.Instance.IsServer)
+                {
+                    TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetHealthString());
+                }
             }
-            Debug.Log("Colliding with sword");
         }
+    }
+
+    public bool TryAttack()
+    {
+        if(lastAttackTime + attackCooldown <= Time.time)
+        {
+            if (animationPlayer == null)
+            {
+                animationPlayer = GetComponentInChildren<Animator>();
+            }
+
+            animationPlayer.Play("SwordSlash");
+            lastAttackTime = Time.time;
+            return true;
+        }
+
+        return false;
     }
 
     public void PlayAnimation(string animName)
     {
-        if(animationPlayer == null)
+        if (animationPlayer == null)
         {
             animationPlayer = GetComponentInChildren<Animator>();
         }
