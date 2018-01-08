@@ -21,6 +21,8 @@ public class PlayerManager : MonoBehaviour {
     [SerializeField]
     private Text MyIdText;
     [SerializeField]
+    GameObject DeathText;
+    [SerializeField]
     GameObject otherPlayerPrefab;
     [SerializeField]
     GameObject userInfoPanelPrefab;
@@ -108,6 +110,27 @@ public class PlayerManager : MonoBehaviour {
         {
             p.health = int.Parse(msg[3]);
         }
+        if (p.health == 0)
+        {
+            p.Die(false);
+        }
+    }
+
+    public void SetIsAlive(string[] msg)
+    {
+        Player p = GetPlayer(msg[2]);
+        if (p != null)
+        {
+            bool thisPlayer = (p == MyPlayer);
+            if (msg[3] == "True")
+            {
+                p.Respawn(thisPlayer);
+            }
+            else
+            {
+                p.Die(thisPlayer);
+            }
+        }
     }
 
     public void DamagePlayer(string name, int dmgValue)
@@ -115,7 +138,8 @@ public class PlayerManager : MonoBehaviour {
         Player p = GetPlayer(name);
         if (p != null)
         {
-            p.health = Mathf.Clamp(p.health - dmgValue, 0, 100);
+            int health = Mathf.Clamp(p.health - dmgValue, 0, 100);
+            SetHealth(new string[] { "", "", name, health.ToString() });
         }
     }
 
@@ -157,5 +181,13 @@ public class PlayerManager : MonoBehaviour {
             idx++;
         }
         return allrot;
+    }
+    public void ShowDeathText(bool show)
+    {
+        if(DeathText != null)
+        {
+            Debug.Log("Setting deathtext to " + show);
+            DeathText.SetActive(show);
+        }
     }
 }

@@ -240,7 +240,7 @@ public class TestNetworkScript : MonoBehaviour {
     {
         if (!Initialized) return false; 
 
-        byte[] bytemessage = new byte[1240];
+        byte[] bytemessage = new byte[1024];
         Stream stream = new MemoryStream(bytemessage);
         BinaryFormatter formatter = new BinaryFormatter();
         formatter.Serialize(stream, message);
@@ -265,7 +265,7 @@ public class TestNetworkScript : MonoBehaviour {
     {
         if (!Initialized) return false;
 
-        byte[] bytemessage = new byte[1240];
+        byte[] bytemessage = new byte[1024];
         Stream stream = new MemoryStream(bytemessage);
         BinaryFormatter formatter = new BinaryFormatter();
         formatter.Serialize(stream, message);
@@ -357,6 +357,8 @@ public class TestNetworkScript : MonoBehaviour {
                 connectionList.TryGetValue(connection, out gp);
                 Player p = gp.GetComponent<Player>();
                 string playerdata = "servermsg crpl " + p.GetPositionString();
+                SendNetworkMessageToClient(playerdata, connectionId, true);
+                playerdata = p.GetRotationString();
                 SendNetworkMessageToClient(playerdata, connectionId, true);
             }
             yield return null;

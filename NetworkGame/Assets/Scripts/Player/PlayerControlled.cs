@@ -8,12 +8,13 @@ public class PlayerControlled : Player {
     public bool isInitialized = false;
 	// Use this for initialization
 	void Start () {
+        IsAlive = true;
         //PlayerManager.Instance.AddNewPlayer(this);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (!isInitialized) return;
+        if (!isInitialized || !IsAlive) return;
         float yRot = Input.GetAxis("Horizontal") * 2.0f;
         float xPos = Input.GetAxis("Vertical") * 0.2f;
 

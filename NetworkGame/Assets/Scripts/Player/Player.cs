@@ -7,12 +7,17 @@ public class Player : MonoBehaviour {
     public int health = 100;
     private float lastAttackTime;
     private float attackCooldown;
+    private float attackCooldownBanded;
     private Animator animationPlayer;
+    public bool IsAlive { get; set; }
+    private float respawnTime = 5.0f;
     // Use this for initialization
     void Start () {
         //PlayerManager.Instance.AddNewPlayer(this);
         attackCooldown = 1.0f;
+        attackCooldownBanded = 1.5f;
         lastAttackTime = Time.time;
+        IsAlive = true;
 	}
 	
 	// Update is called once per frame
@@ -46,6 +51,11 @@ public class Player : MonoBehaviour {
         return "hl " + playerName + " " + health;
     }
 
+    public string GetAliveString()
+    {
+        return "al " + playerName + " " + IsAlive.ToString();
+    }
+
     public void OnTriggerEnter(Collider other)
     {   
         if(other.gameObject.tag == "Weapon")
@@ -67,7 +77,8 @@ public class Player : MonoBehaviour {
 
     public bool TryAttack()
     {
-        if(lastAttackTime + attackCooldown <= Time.time)
+        float cd = (TestNetworkScript.Instance.IsServer ? attackCooldown : attackCooldownBanded);
+        if(lastAttackTime + cd <= Time.time)
         {
             if (animationPlayer == null)
             {
@@ -88,7 +99,49 @@ public class Player : MonoBehaviour {
         {
             animationPlayer = GetComponentInChildren<Animator>();
         }
-
         animationPlayer.Play(animName);
+        if (TestNetworkScript.Instance.IsServer)
+        {
+            TestNetworkScript.Instance.SendNetworkMessageToServer("servermsg " + playerName + " at1", true);
+        }
+    }
+
+    public void Die(bool thisPlayer)
+    {
+        if (thisPlayer) PlayerManager.Instance.ShowDeathText(true);
+        PlayAnimation("SwordDeath");
+        if (IsAlive)
+        {
+            IsAlive = false;
+            if (TestNetworkScript.Instance.IsServer)
+            {
+                StartCoroutine(RespawnTimer());
+                TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetAliveString(), true);
+            }
+        }
+    }
+
+    public IEnumerator RespawnTimer()
+    {
+        float deathTime = Time.time;
+        while(deathTime + respawnTime >= Time.time)
+        {
+            yield return null;
+        }
+        Respawn();
+    }
+
+    public void Respawn(bool thisPlayer = false)
+    {
+        health = 100;
+        IsAlive = true;
+        SetPosition("0", "1.0", "0");
+        if(thisPlayer) PlayerManager.Instance.ShowDeathText(false);
+        if (TestNetworkScript.Instance.IsServer)
+        {
+            TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetHealthString(), true);
+            TestNetworkScript.Instance.SendNetworkMessageToAllClients("servermsg " + GetAliveString(), true);
+            TestNetworkScript.Instance.SendNetworkMessageToAllClients(GetPositionString(), true);
+        }
     }
 }

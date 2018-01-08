@@ -95,6 +95,9 @@ public class MessageParser : MonoBehaviour {
             case "at1":
                 PlayerManager.Instance.PlayPlayerAnimation(msg);
                 break;
+            case "al":
+                PlayerManager.Instance.SetIsAlive(msg);
+                break;
             default:
                 break;
 
