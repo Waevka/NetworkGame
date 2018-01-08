@@ -143,6 +143,24 @@ public class PlayerManager : MonoBehaviour {
         }
     }
 
+    public void AddSecretPoint(string name, int amount)
+    {
+        Player p = GetPlayer(name);
+        if (p != null)
+        {
+            p.AddPoint(amount);
+        }
+    }
+
+    public void SetSecretPoint(string[] msg)
+    {
+        Player p = GetPlayer(msg[2]);
+        if (p != null)
+        {
+            p.SetPoint(int.Parse(msg[3]));
+        }
+    }
+
     public void PlayPlayerAnimation(string[] msg)
     {
         Player p = GetPlayer(msg[1]);
@@ -186,7 +204,6 @@ public class PlayerManager : MonoBehaviour {
     {
         if(DeathText != null)
         {
-            Debug.Log("Setting deathtext to " + show);
             DeathText.SetActive(show);
         }
     }

@@ -260,7 +260,6 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
-
     public bool SendNetworkMessageToClient(string message, int connectionId, bool reliable)
     {
         if (!Initialized) return false;
@@ -283,6 +282,19 @@ public class TestNetworkScript : MonoBehaviour {
             Debug.Log("Sent message: " + message);
             return true;
         }
+    }
+
+    public bool SendNetworkMessageToClient(string message, string name, bool reliable)
+    {
+        GameObject p = PlayerManager.Instance.GetPlayer(name).gameObject;
+        foreach(KeyValuePair <int, GameObject> pl in connectionList)
+        {
+            if(pl.Value == p)
+            {   
+                return SendNetworkMessageToClient(message, pl.Key, reliable);
+            }
+        }
+        return false;
     }
 
     public void SendNetworkMessageToAllClients(string message, bool reliable)

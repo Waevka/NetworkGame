@@ -98,6 +98,9 @@ public class MessageParser : MonoBehaviour {
             case "al":
                 PlayerManager.Instance.SetIsAlive(msg);
                 break;
+            case "pt":
+                PlayerManager.Instance.SetSecretPoint(msg);
+                break;
             default:
                 break;
 

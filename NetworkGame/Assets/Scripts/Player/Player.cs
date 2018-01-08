@@ -9,6 +9,8 @@ public class Player : MonoBehaviour {
     private float attackCooldown;
     private float attackCooldownBanded;
     private Animator animationPlayer;
+    [SerializeField]
+    private int secretPointCount;
     public bool IsAlive { get; set; }
     private float respawnTime = 5.0f;
     // Use this for initialization
@@ -16,6 +18,7 @@ public class Player : MonoBehaviour {
         //PlayerManager.Instance.AddNewPlayer(this);
         attackCooldown = 1.0f;
         attackCooldownBanded = 1.5f;
+        secretPointCount = 0;
         lastAttackTime = Time.time;
         IsAlive = true;
 	}
@@ -104,6 +107,24 @@ public class Player : MonoBehaviour {
         {
             TestNetworkScript.Instance.SendNetworkMessageToServer("servermsg " + playerName + " at1", true);
         }
+    }
+
+    public void AddPoint(int value)
+    {
+        secretPointCount += value;
+        if (TestNetworkScript.Instance.IsServer)
+        {
+            TestNetworkScript.Instance.SendNetworkMessageToClient("servermsg " + playerName + " pt " + secretPointCount, playerName, true);
+        }
+    }
+    public void SetPoint(int value)
+    {
+        secretPointCount = value;
+    }
+
+    public int GetPoint()
+    {
+        return secretPointCount;
     }
 
     public void Die(bool thisPlayer)

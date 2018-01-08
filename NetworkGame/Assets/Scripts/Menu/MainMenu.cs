@@ -40,6 +40,7 @@ public class MainMenu : MonoBehaviour
     public GameObject m_ServerMenu;
     public GameObject m_PlayerIDInfo;
     public GameObject m_ServerInfo;
+    public GameObject m_PointCount;
     public Text m_ServerAddressText;
     public Text m_ServerPortText;
 
@@ -178,6 +179,7 @@ public class MainMenu : MonoBehaviour
 
             DisableCurrentMenu(ref m_ClientMenu);
             SetCurrentMenu(ref m_PlayerIDInfo);
+            SetCurrentMenu(ref m_PointCount);
         }
         else
         {
