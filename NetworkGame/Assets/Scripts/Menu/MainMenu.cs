@@ -41,6 +41,7 @@ public class MainMenu : MonoBehaviour
     public GameObject m_PlayerIDInfo;
     public GameObject m_ServerInfo;
     public GameObject m_PointCount;
+    public GameObject m_DecorationObjects;
     public Text m_ServerAddressText;
     public Text m_ServerPortText;
 
@@ -139,6 +140,7 @@ public class MainMenu : MonoBehaviour
         InfoMenu.Instance.WriteLine("Server created.");
 
         SetCurrentMenu(ref m_ServerInfo);
+        DisableCurrentMenu(ref m_DecorationObjects);
         m_ServerAddressText.text = GetExternalIpAddress();
         m_ServerPortText.text = GetPortNumber(ref m_SPort).ToString();
     }
@@ -180,6 +182,7 @@ public class MainMenu : MonoBehaviour
             DisableCurrentMenu(ref m_ClientMenu);
             SetCurrentMenu(ref m_PlayerIDInfo);
             SetCurrentMenu(ref m_PointCount);
+            DisableCurrentMenu(ref m_DecorationObjects);
         }
         else
         {

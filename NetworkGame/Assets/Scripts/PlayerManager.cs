@@ -28,6 +28,8 @@ public class PlayerManager : MonoBehaviour {
     GameObject userInfoPanelPrefab;
     [SerializeField]
     GameObject swordPrefab;
+    [SerializeField]
+    GameObject pickupPrefab;
 
     Dictionary<string, Player> playerList;
     // Use this for initialization
@@ -163,10 +165,10 @@ public class PlayerManager : MonoBehaviour {
 
     public void PlayPlayerAnimation(string[] msg)
     {
-        Player p = GetPlayer(msg[1]);
+        Player p = GetPlayer(msg[2]);
         if (p != null)
         {
-            switch (msg[2])
+            switch (msg[1])
             {
                 case "at1":
                     p.PlayAnimation("SwordSlash");
@@ -175,6 +177,11 @@ public class PlayerManager : MonoBehaviour {
                     break;
             }
         }
+    }
+
+    public void CreatePickup(string x, string y, string z)
+    {
+        Instantiate(pickupPrefab, new Vector3(float.Parse(x), float.Parse(y), float.Parse(z)), Quaternion.identity);
     }
 
     public string[] GetAllPlayerPositions()

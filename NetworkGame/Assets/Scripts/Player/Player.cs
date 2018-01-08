@@ -103,10 +103,6 @@ public class Player : MonoBehaviour {
             animationPlayer = GetComponentInChildren<Animator>();
         }
         animationPlayer.Play(animName);
-        if (TestNetworkScript.Instance.IsServer)
-        {
-            TestNetworkScript.Instance.SendNetworkMessageToServer("servermsg " + playerName + " at1", true);
-        }
     }
 
     public void AddPoint(int value)

@@ -11,8 +11,8 @@ public class PointPickup : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        transform.Rotate(Vector3.up, 3.0f);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -24,5 +24,9 @@ public class PointPickup : MonoBehaviour {
             }
             Destroy(gameObject);
         }
+    }
+    public string GetPickupString()
+    {
+        return "muf " + transform.position.x + " " + transform.position.y + " " + transform.position.z;
     }
 }

@@ -101,6 +101,9 @@ public class MessageParser : MonoBehaviour {
             case "pt":
                 PlayerManager.Instance.SetSecretPoint(msg);
                 break;
+            case "muf":
+                PlayerManager.Instance.CreatePickup(msg[2], msg[3], msg[4]);
+                break;
             default:
                 break;
 

@@ -36,6 +36,8 @@ public class TestNetworkScript : MonoBehaviour {
     GameObject playerPrefab;
     [SerializeField]
     GameObject playerControlledPrefab;
+    [SerializeField]
+    GameObject pickupPrefab;
     Dictionary<int, GameObject> connectionList;
     [SerializeField]
     GameStateUpdater gameStateUpdater = null;
@@ -176,6 +178,7 @@ public class TestNetworkScript : MonoBehaviour {
             gameStateUpdater = gameObject.AddComponent<GameStateUpdater>();
         }
         gameStateUpdater.enabled = true;
+        gameStateUpdater.SetPickupPrefab(pickupPrefab);
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
         unreliableChannelId = connectionConfig.AddChannel(QosType.UnreliableSequenced);
@@ -198,6 +201,7 @@ public class TestNetworkScript : MonoBehaviour {
             gameStateUpdater = gameObject.AddComponent<GameStateUpdater>();
         }
         gameStateUpdater.enabled = true;
+        gameStateUpdater.SetPickupPrefab(pickupPrefab);
         ConnectionConfig connectionConfig = new ConnectionConfig();
         reliableChannelId = connectionConfig.AddChannel(QosType.Reliable);
         unreliableChannelId = connectionConfig.AddChannel(QosType.UnreliableSequenced);
@@ -373,6 +377,12 @@ public class TestNetworkScript : MonoBehaviour {
                 playerdata = p.GetRotationString();
                 SendNetworkMessageToClient(playerdata, connectionId, true);
             }
+            yield return null;
+        }
+        string[] pickupData = gameStateUpdater.GetAllMuffins();
+        foreach(string s in pickupData)
+        {
+            SendNetworkMessageToClient(s, connectionId, true);
             yield return null;
         }
     }
