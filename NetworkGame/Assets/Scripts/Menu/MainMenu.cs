@@ -84,6 +84,12 @@ public class MainMenu : MonoBehaviour
         SetCurrentMenu(ref m_MainMenu);
     }
 
+    public void ClientButtonFirstAction()
+    {
+        DisableCurrentMenu(ref m_MainMenu);
+        SetCurrentMenu(ref m_ClientMenu);
+    }
+
     public void ClientButtonAction()
     {
         string input_addr = m_ServerAddress.text;
@@ -98,12 +104,6 @@ public class MainMenu : MonoBehaviour
         if (!isConnectedToServer)
         {
             isConnectedToServer = network.ConnectToServer(input_addr, GetPortNumber(ref m_CPort));
-        }
-
-        if (isConnectedToServer)
-        {
-            DisableCurrentMenu(ref m_MainMenu);
-            SetCurrentMenu(ref m_ClientMenu);
         }
     }
 
