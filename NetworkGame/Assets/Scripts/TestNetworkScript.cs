@@ -47,7 +47,11 @@ public class TestNetworkScript : MonoBehaviour {
     public bool bothServerAndClient = false;
     public bool isListening = false;
 
-	// Use this for initialization
+	/// <summary>
+    /// Initializes TestNetworkScript object.
+    /// Invokes Init() on Unity low level API NetworkTransport.
+    /// Starts coroutine that receives network messages from server or client.
+    /// </summary>
 	void Start () { 
         NetworkTransport.Init();
         connectionList = new Dictionary<int, GameObject>();
@@ -61,6 +65,15 @@ public class TestNetworkScript : MonoBehaviour {
         
     }
 
+    /// <summary>
+    /// Reveives network messages of type NetworkEventType in a loop.
+    /// Supported events:
+    /// - ConnectEvent
+    /// - DisconnectEvent
+    /// - DataEvent
+    /// - nothing received
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator MessageReceiver()
     {
         while (isListening)
@@ -107,6 +120,15 @@ public class TestNetworkScript : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// Tries to estabilish a connection to server, using provided IP address and port number.
+    /// Default IP is 127.0.0.1 and default port is 8888.
+    /// In case of connection failure, up to 3 retries are executed.
+    /// Sets the "Initialized" flag on success.
+    /// </summary>
+    /// <param name="ipAddress">IP address entered by user</param>
+    /// <param name="portNumber">Port number entered by user</param>
+    /// <returns></returns>
     public bool ConnectToServer(string ipAddress, int portNumber)
     {
         ConnectionConfig connectionConfig = new ConnectionConfig();
@@ -144,6 +166,12 @@ public class TestNetworkScript : MonoBehaviour {
         return false;
     }
 
+    /// <summary>
+    /// Initializes a player object.
+    /// Server side - initializes a simple Player object used to store data.
+    /// Client side - initializes a controllable PlayerControlled object.
+    /// </summary>
+    /// <param name="username">Username of player that is being initialized</param>
     public void InitializePlayer(string username)
     {
         if (IsServer)
@@ -165,12 +193,23 @@ public class TestNetworkScript : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// Executed on Connect button click by client.
+    /// </summary>
+    /// <param name="login">Login/name of user.</param>
+    /// <param name="pass">User password.</param>
+    /// <returns>If login has been successful or not.</returns>
     public bool LogInToServer(string login, string pass)
     {
         InfoMenu.Instance.WriteLine("Trying to log in user: " + login);
         return MainMenu.Instance.IsUserInDatabase(login, pass);
     }
 
+    /// <summary>
+    /// Creates a listening server by initializing further parameters of
+    /// TransportNetwork API.
+    /// </summary>
+    /// <param name="portNumber">Port number for the server.</param>
     public void CreateServer(int portNumber)
     {
         gameStateUpdater = gameObject.GetComponent<GameStateUpdater>();
@@ -194,6 +233,11 @@ public class TestNetworkScript : MonoBehaviour {
         IsServer = true;
         parser.IsServer = true;
     }
+
+    /// <summary>
+    /// Creates a listening server by initializing further parameters of
+    /// TransportNetwork API. Executes on button press by server.
+    /// </summary>
     public void ButtonCreateServer()
     {
         gameStateUpdater = gameObject.GetComponent<GameStateUpdater>();
@@ -236,11 +280,20 @@ public class TestNetworkScript : MonoBehaviour {
         parser.IsServer = true;
     }
 
+    /// <summary>
+    /// Shuts down NetworkTransport when game window is closed.
+    /// </summary>
     private void OnDestroy()
     {
         NetworkTransport.Shutdown();
     }
 
+    /// <summary>
+    /// Sends a message from client to server.
+    /// </summary>
+    /// <param name="message">Server message</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
+    /// <returns>If the sending succeeded or not.</returns>
     public bool SendNetworkMessageToServer(string message, bool reliable)
     {
         if (!Initialized) return false; 
@@ -266,6 +319,13 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Sends a network message to a single client.
+    /// </summary>
+    /// <param name="message">Server message</param>
+    /// <param name="connectionId">Connection ID of recipent client.</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
+    /// <returns>If the sending succeeded or not.</returns>
     public bool SendNetworkMessageToClient(string message, int connectionId, bool reliable)
     {
         if (!Initialized) return false;
@@ -290,6 +350,13 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Finds a client connectionID by client name and then sends a network message.
+    /// </summary>
+    /// <param name="message">Server message.</param>
+    /// <param name="name">Name of the recipent client.</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
+    /// <returns>If the sending succeeded or not.</returns>
     public bool SendNetworkMessageToClient(string message, string name, bool reliable)
     {
         GameObject p = PlayerManager.Instance.GetPlayer(name).gameObject;
@@ -303,16 +370,35 @@ public class TestNetworkScript : MonoBehaviour {
         return false;
     }
 
+    /// <summary>
+    /// Sends a network message to all currently connected clients using a broadcaster coroutine.
+    /// </summary>
+    /// <param name="message">Server message</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
     public void SendNetworkMessageToAllClients(string message, bool reliable)
     {
         StartCoroutine(ClientBroadcaster(message, reliable));
     }
 
+    /// <summary>
+    /// Sends a network message to all currently connected clients BUT the provided client.
+    /// </summary>
+    /// <param name="message">Server message</param>
+    /// <param name="connectionId">Connection ID of client that should be excluded.</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
     public void SendNetworkMessageToAllOtherClients(string message, int connectionId, bool reliable)
     {
         StartCoroutine(ClientBroadcaster(message, reliable, connectionId));
     }
 
+    /// <summary>
+    /// Creates a new player object and saves its' info. Informs all other players
+    /// that a new player has connected. Sends current state of the game to the
+    /// new client.
+    /// </summary>
+    /// <param name="initAsServer">If the game client belongs to a server or client.</param>
+    /// <param name="connectionId">Connection ID of new player.</param>
+    /// <param name="clientName">Client name of new player.</param>
     public void InitializeNewPlayer(bool initAsServer, int connectionId, string clientName)
     {
         if (connectionList.ContainsKey(connectionId) || bothServerAndClient) return;
@@ -339,6 +425,11 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Removes a client from connection list. Might be due to a disconnect
+    /// or the client was marked as suspicious (cheating).
+    /// </summary>
+    /// <param name="clientId">Client ID of removed client.</param>
     private void RemoveClient(int clientId)
     {
         GameObject quitter;
@@ -353,6 +444,10 @@ public class TestNetworkScript : MonoBehaviour {
         connectionList.Remove(clientId);
     }
 
+    /// <summary>
+    /// Special case for a Server instance that also spawns a PlayerControlled.
+    /// To be used in development.
+    /// </summary>
     private void InitializeServerClient()
     {
         GameObject p = Instantiate(playerControlledPrefab);
@@ -360,11 +455,20 @@ public class TestNetworkScript : MonoBehaviour {
         PlayerManager.Instance.AssignMyName("ServerClient");
     }
 
+    /// <summary>
+    /// Sends current game state to a new player, using a non blocking coroutine.
+    /// </summary>
+    /// <param name="connectionId">Connection ID of new player.</param>
     public void SendInitialData(int connectionId)
     {
         StartCoroutine(SendInitialDataRoutine(connectionId));
     }
 
+    /// <summary>
+    /// Non blocking coroutine for sending initial game state to a new player.
+    /// </summary>
+    /// <param name="connectionId">Connection ID of new player.</param>
+    /// <returns></returns>
     private IEnumerator SendInitialDataRoutine(int connectionId)
     {
        foreach(int connection in connectionList.Keys)
@@ -389,6 +493,14 @@ public class TestNetworkScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Broadcasts a message to all connected players. Can be used to send
+    /// a message to all client BUT one provided.
+    /// </summary>
+    /// <param name="message">Server message.</param>
+    /// <param name="reliable">Defines if message will be sent as reliable packet or not.</param>
+    /// <param name="connectionId">Does not have to be provided.</param>
+    /// <returns></returns>
     private IEnumerator ClientBroadcaster(string message, bool reliable, int connectionId = -1)
     {
         foreach(int connection in connectionList.Keys)
@@ -409,6 +521,10 @@ public class TestNetworkScript : MonoBehaviour {
         return connectionList;
     }
 
+    /// <summary>
+    /// Kicks a player that has been marked as suspicious.
+    /// </summary>
+    /// <param name="p"></param>
     public void KickPlayer(Player p)
     {
         foreach (KeyValuePair<int, GameObject> player in connectionList)
