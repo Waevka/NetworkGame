@@ -131,10 +131,10 @@ public class MainMenu : MonoBehaviour
     public void CreateServerButtonAction()
     {
         // TODO: Usunac pozniej - zahardkodowane zeby nie wpisywac przy kazdym odpaleniu builda
-        if (!IsUserInDatabase("admin", "nimda"))
-        {
-            AddUser("admin", "nimda");
-        }
+        //if (!IsUserInDatabase("admin", "nimda"))
+        //{
+        //    AddUser("admin", "nimda");
+        //}
         network.CreateServer(GetPortNumber(ref m_SPort));
         DisableCurrentMenu(ref m_ServerMenu);
         InfoMenu.Instance.WriteLine("Server created.");
@@ -166,6 +166,11 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Processes the answer from server and initializes player
+    /// </summary>
+    /// <param name="msg">String message from server</param>
+    /// <returns>nothing</returns>
     public void LogInResponse(string[] msg)
     {
         bool loginStatus = false;
@@ -200,6 +205,12 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds user to database
+    /// </summary>
+    /// <param name="login">User login</param>
+    /// <param name="pass">User password</param>
+    /// <returns>nothing</returns>
     private void AddUser(string login, string pass)
     {
         StreamWriter sw = new StreamWriter("users.txt", true);
@@ -208,6 +219,12 @@ public class MainMenu : MonoBehaviour
         sw.Close();
     }
 
+    /// <summary>
+    /// Chekcs if user exist in database
+    /// </summary>
+    /// <param name="login">User login</param>
+    /// <param name="pass">User password</param>
+    /// <returns>bool value - true if user exist in database</returns>
     public bool IsUserInDatabase(string login, string pass)
     {
         if (File.Exists("users.txt"))
@@ -231,6 +248,10 @@ public class MainMenu : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Returns external ip address of physical machine
+    /// </summary>
+    /// <returns>Returns external ip address of physical machine</returns>
     private string GetExternalIpAddress()
     {
         try
