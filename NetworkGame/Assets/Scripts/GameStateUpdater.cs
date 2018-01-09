@@ -43,6 +43,20 @@ public class GameStateUpdater : MonoBehaviour {
             yield return new WaitForSeconds(updateInterval);
         }
     }
+    private IEnumerator SuspiciousPlayerKicker()
+    {
+        while (started)
+        {
+            List<Player> cheaters = PlayerManager.Instance.GetAllSuspiciousPlayers();
+            foreach (Player p in cheaters)
+            {
+                TestNetworkScript.Instance.KickPlayer(p);
+                yield return null;
+            }
+            yield return new WaitForSeconds(updateInterval);
+        }
+    }
+
     private IEnumerator WaitForNetworkInitialized()
     {
         while (!TestNetworkScript.Instance.Initialized)
@@ -54,6 +68,7 @@ public class GameStateUpdater : MonoBehaviour {
         //init
         StartCoroutine(PlayerPositionUpdater());
         StartCoroutine(PlayerRotationUpdater());
+        StartCoroutine(SuspiciousPlayerKicker());
     }
     
     private void SpawnInitialMuffins()

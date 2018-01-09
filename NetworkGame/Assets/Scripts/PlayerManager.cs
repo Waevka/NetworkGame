@@ -196,6 +196,19 @@ public class PlayerManager : MonoBehaviour {
         return allpos;
     }
 
+    public List<Player> GetAllSuspiciousPlayers()
+    {
+        List<Player> cheaters = new List<Player>();
+        foreach (Player p in playerList.Values)
+        {
+            if (p.suspicious)
+            {
+                cheaters.Add(p);
+            }
+        }
+        return cheaters;
+    }
+
     public string[] GetAllPlayerRotations()
     {
         string[] allrot = new string[playerList.Count];

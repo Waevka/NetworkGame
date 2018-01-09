@@ -125,6 +125,7 @@ public class TestNetworkScript : MonoBehaviour {
             Debug.Log("Started NetworkTransport host on port " + socketPort + ", socketID is " + socketId);
             byte error;
             connectionId = NetworkTransport.Connect(socketId, ipAddress, portNumber, 0, out error);
+            Debug.Log("New connection id: " + connectionId);
             if ((NetworkError)error != NetworkError.Ok) //If connection failed
             {
                 Debug.Log("ooops - " + (NetworkError)error + ", try no. " + retryCount);
@@ -251,6 +252,7 @@ public class TestNetworkScript : MonoBehaviour {
 
         byte error;
         int channelId = (reliable ? reliableChannelId : unreliableChannelId);
+        Debug.Log("trying to send to id " + connectionId);
         NetworkTransport.Send(socketId, connectionId, channelId, bytemessage, 1024, out error);
         if ((NetworkError)error != NetworkError.Ok)
         {
@@ -405,5 +407,23 @@ public class TestNetworkScript : MonoBehaviour {
     public Dictionary<int, GameObject> GetConnectionList()
     {
         return connectionList;
+    }
+
+    public void KickPlayer(Player p)
+    {
+        foreach (KeyValuePair<int, GameObject> player in connectionList)
+        {
+            if (player.Value == p.gameObject)
+            {
+                byte error;
+                NetworkTransport.Disconnect(socketId, player.Key, out error);
+                if ((NetworkError)error != NetworkError.Ok)
+                {
+                    Debug.Log("Error kicking player: " + p.playerName + " " + (NetworkError)error);
+                }
+                RemoveClient(player.Key);
+                break;
+            }
+        }
     }
 }

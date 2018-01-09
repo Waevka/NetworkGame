@@ -8,6 +8,7 @@ public class Player : MonoBehaviour {
     private float lastAttackTime;
     private float attackCooldown;
     private float attackCooldownBanded;
+    public bool suspicious;
     private Animator animationPlayer;
     [SerializeField]
     private int secretPointCount;
@@ -21,6 +22,7 @@ public class Player : MonoBehaviour {
         secretPointCount = 0;
         lastAttackTime = Time.time;
         IsAlive = true;
+        suspicious = false;
 	}
 	
 	// Update is called once per frame
